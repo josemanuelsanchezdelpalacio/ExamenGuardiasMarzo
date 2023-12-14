@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import com.dam2jms.cajaregistradoravm.R
 
 class ViewModelCambios : ViewModel() {
 
@@ -28,13 +29,22 @@ class ViewModelCambios : ViewModel() {
         for (billete in billetesMonedas) {
             val cantidad = (cambio / billete).toInt()
             if (cantidad > 0) {
-                cambio %= billete
                 listaCambios[billete] = cantidad
+                cambio %= billete
             }
         }
 
         _uiState.value.resultado = buildString {
             for ((billete, cantidad) in listaCambios) {
+                when (cantidad) {
+                    100 -> { _uiState.value.imagen = R.drawable.billete_cien }
+                    50 -> { _uiState.value.imagen = R.drawable.billete_cincuenta }
+                    20 -> { _uiState.value.imagen = R.drawable.billete_veinte }
+                    10 -> { _uiState.value.imagen = R.drawable.billete_diez }
+                    5 -> { _uiState.value.imagen = R.drawable.billete_cinco }
+                    2 -> { _uiState.value.imagen = R.drawable.moneda_dos }
+                    else -> { _uiState.value.imagen = R.drawable.moneda_uno }
+                }
                 append("$cantidad de $billete\n")
             }
         }
