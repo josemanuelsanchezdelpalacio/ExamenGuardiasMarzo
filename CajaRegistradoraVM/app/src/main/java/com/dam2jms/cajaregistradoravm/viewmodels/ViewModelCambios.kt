@@ -1,6 +1,7 @@
 package com.dam2jms.cajaregistradoravm.viewmodels
 
 import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import com.dam2jms.cajaregistradoravm.states.UiState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,15 +29,13 @@ class ViewModelCambios : ViewModel() {
 
         for (billete in billetesMonedas) {
             val cantidad = (cambio / billete).toInt()
-            if (cantidad > 0) {
-                listaCambios[billete] = cantidad
-                cambio %= billete
-            }
+            listaCambios[billete] = cantidad
+            cambio %= billete
         }
 
         _uiState.value.resultado = buildString {
             for ((billete, cantidad) in listaCambios) {
-                when (cantidad) {
+                when (billete) {
                     100 -> { _uiState.value.imagen = R.drawable.billete_cien }
                     50 -> { _uiState.value.imagen = R.drawable.billete_cincuenta }
                     20 -> { _uiState.value.imagen = R.drawable.billete_veinte }
