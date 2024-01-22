@@ -38,12 +38,12 @@ fun RegisterScreen(navController: NavController){
             )
         }
     ) { paddingValues ->
-        LoginScreenBody(modifier = Modifier.padding(paddingValues), navController)
+        RegisterScreenBody(modifier = Modifier.padding(paddingValues), navController)
     }
 }
 
 @Composable
-fun RegisterScreenBody(navController: NavController) {
+fun RegisterScreenBody(modifier: Modifier, navController: NavController) {
     var nombre by remember { mutableStateOf("") }
     var correo by remember { mutableStateOf("") }
     var textContra by remember { mutableStateOf("") }
