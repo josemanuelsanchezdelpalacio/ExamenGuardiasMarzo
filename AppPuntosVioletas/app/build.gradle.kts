@@ -65,6 +65,9 @@ dependencies {
     implementation("com.google.maps.android:maps-compose:2.11.2")
     implementation("com.google.android.gms:play-services-maps:18.1.0")
 
+    //para los links
+    implementation("com.google.accompanist:accompanist-youtube-player:0.16.1")
+
     //para la navegacion
     implementation("androidx.navigation:navigation-compose:2.7.6")
     //para textfield

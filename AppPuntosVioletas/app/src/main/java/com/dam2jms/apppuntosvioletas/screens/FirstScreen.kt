@@ -1,7 +1,9 @@
 package com.dam2jms.apppuntosvioletas.screens
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.graphics.Camera
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import androidx.compose.animation.AnimatedVisibility
@@ -18,14 +20,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialogDefaults.containerColor
 import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -49,8 +57,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat.startActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavHostController
@@ -72,6 +82,8 @@ import com.google.maps.android.compose.rememberMarkerState
 fun FirstScreen(navController: NavHostController, mvvm: ViewModelFirstScreen) {
 
     val uiState by mvvm.uiState.collectAsState()
+    var showMenu by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -80,20 +92,18 @@ fun FirstScreen(navController: NavHostController, mvvm: ViewModelFirstScreen) {
                     containerColor = Color(0xFFAC53F7),
                     titleContentColor = Color.White,
                 ),
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Atrás")
-                    }
-                },
                 title = {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        // Menú en el centro
-                        IconButton(onClick = { navController.navigate(route = AppScreens.OpcionesScreen.route) }) {
+                        IconButton(onClick = { showMenu =! showMenu }) {
                             Icon(imageVector = Icons.Default.Menu, contentDescription = "Menú")
+                        }
+
+                        DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu=false }, modifier = Modifier.width(150.dp)) {
+                            ClickableText(text = AnnotatedString("Videos explicativos"), onClick = {mvvm.mostrarVideosExplicativos(context,"https://www.youtube.com/watch?v=Vghlgaa-4Nc")})
                         }
                     }
                 }
