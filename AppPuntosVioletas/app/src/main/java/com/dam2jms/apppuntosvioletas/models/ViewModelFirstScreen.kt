@@ -15,24 +15,5 @@ class ViewModelFirstScreen : ViewModel() {
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
-    fun cambiarIconoYNombreDeLaApp() {
-        TODO("Not yet implemented")
-    }
-
-    fun establecerContactoDeEmergencia() {
-        TODO("Not yet implemented")
-    }
-
-    fun mostrarVideosExplicativos(context: Context, urlStr: String?) {
-
-
-    }
-
-    fun openWebPage() {
-
-    }
-
-    fun mostrarFormularioParaEmpezar() {
-        TODO("Not yet implemented")
-    }
+    fun mostrarVideosExplicativos() {}
 }

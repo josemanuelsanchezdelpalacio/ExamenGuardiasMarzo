@@ -20,20 +20,24 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -48,51 +52,57 @@ import androidx.navigation.NavHostController
 import com.dam2jms.apppuntosvioletas.data.Pregunta
 import com.dam2jms.apppuntosvioletas.data.PreguntasEncuesta
 import com.dam2jms.apppuntosvioletas.models.ViewModelEncuestaScreen
+import com.dam2jms.apppuntosvioletas.models.ViewModelFirstScreen
 import com.dam2jms.apppuntosvioletas.navigation.AppScreens
 import com.dam2jms.apppuntosvioletas.states.UiState
+import kotlinx.coroutines.launch
+import kotlin.math.cos
+import kotlin.math.sin
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun encuestaScreen(navController: NavHostController, mvvm: ViewModelEncuestaScreen) {
 
     val uiState by mvvm.uiState.collectAsState()
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFFAC53F7),
-                    titleContentColor = Color.White,
-                ),
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Atrás")
-                    }
-                },
-                title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        IconButton(onClick = { navController.navigate(route = AppScreens.OpcionesScreen.route) }) {
-                            Icon(imageVector = Icons.Default.Menu, contentDescription = "Menú")
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            DrawerContent(navController = navController)
+        },
+    ) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("App Puntos Violetas") },
+                    navigationIcon = {
+                        //icono del menu para controlar la apertura y cierre del menu lateral
+                        IconButton(onClick = {
+                            scope.launch {
+                                drawerState.apply {
+                                    if (isClosed) open() else close()
+                                }
+                            }
+                        }) {
+                            Icon(imageVector = Icons.Default.Menu, contentDescription = "Menu")
                         }
                     }
+                )
+            },
+            floatingActionButton = {
+                FloatingActionButton(
+                    onClick = { navController.navigate(route = AppScreens.SOS_Screen.route) },
+                    containerColor = Color(0xFFAC53F7),
+                    elevation = FloatingActionButtonDefaults.elevation()
+                ) {
+                    Icon(imageVector = Icons.Default.Warning, contentDescription = "SOS")
                 }
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { navController.navigate(route = AppScreens.SOS_Screen.route) },
-                containerColor = Color(0xFFAC53F7),
-                elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
-            ) {
-                Icon(imageVector = Icons.Default.Warning, contentDescription = "SOS")
             }
-        },
-    ) { paddingValues ->
-        encuestaScreenBodyContent(modifier = Modifier.padding(paddingValues), mvvm, navController, uiState)
+        ) { paddingValues ->
+            encuestaScreenBodyContent(modifier = Modifier.padding(paddingValues), mvvm, navController, uiState)
+        }
     }
 }
 
@@ -183,9 +193,8 @@ fun PentagonChart(respuestas: List<Int>) {
 
     for (i in 0 until respuestas.size) {
         val angle = Math.toRadians((i * (360.0 / respuestas.size)).toDouble())
-
-        /*val x = (pentagonSize / 2 * angle)
-        val y = (pentagonSize / 2 * angle)
+        /*val x = (pentagonSize / 2 * cos(angle)).toFloat() + pentagonSize / 2
+        val y = (pentagonSize / 2 * sin(angle)).toFloat() + pentagonSize / 2
 
         if (i == 0) {
             path.moveTo(x, y)

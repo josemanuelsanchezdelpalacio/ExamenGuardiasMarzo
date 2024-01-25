@@ -1,7 +1,14 @@
 package com.dam2jms.apppuntosvioletas.models
 
+import android.content.Context
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.ViewModel
+import androidx.navigation.NavController
 import com.dam2jms.apppuntosvioletas.states.UiState
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.SimpleExoPlayer
+import com.google.android.exoplayer2.ui.PlayerView
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,10 +22,6 @@ class ViewModelOpcionesScreen : ViewModel() {
     }
 
     fun establecerContactoDeEmergencia() {
-        TODO("Not yet implemented")
-    }
-
-    fun mostrarVideosExplicativos() {
         TODO("Not yet implemented")
     }
 
