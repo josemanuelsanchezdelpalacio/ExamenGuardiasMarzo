@@ -15,5 +15,4 @@ class ViewModelFirstScreen : ViewModel() {
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
-    fun mostrarVideosExplicativos() {}
 }

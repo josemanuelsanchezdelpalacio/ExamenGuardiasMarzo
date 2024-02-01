@@ -26,6 +26,6 @@ class ViewModelEncuestaScreen : ViewModel() {
     }
 
     fun siguientePregunta() {
-        _uiState.value = _uiState.value.copy(numPregunta = _uiState.value.numPregunta + 1)
+        _uiState.value = _uiState.value.copy(numPregunta = _uiState.value.numPregunta)
     }
 }

@@ -1,6 +1,5 @@
 package com.dam2jms.apppuntosvioletas.screens
 
-import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
@@ -14,12 +13,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -31,37 +27,35 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.dam2jms.apppuntosvioletas.data.Pregunta
 import com.dam2jms.apppuntosvioletas.data.PreguntasEncuesta
 import com.dam2jms.apppuntosvioletas.models.ViewModelEncuestaScreen
-import com.dam2jms.apppuntosvioletas.models.ViewModelFirstScreen
 import com.dam2jms.apppuntosvioletas.navigation.AppScreens
 import com.dam2jms.apppuntosvioletas.states.UiState
 import kotlinx.coroutines.launch
+import kotlin.math.PI
 import kotlin.math.cos
+import kotlin.math.min
 import kotlin.math.sin
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun encuestaScreen(navController: NavHostController, mvvm: ViewModelEncuestaScreen) {
+fun EncuestaScreen(navController: NavHostController, mvvm: ViewModelEncuestaScreen) {
 
     val uiState by mvvm.uiState.collectAsState()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -101,13 +95,13 @@ fun encuestaScreen(navController: NavHostController, mvvm: ViewModelEncuestaScre
                 }
             }
         ) { paddingValues ->
-            encuestaScreenBodyContent(modifier = Modifier.padding(paddingValues), mvvm, navController, uiState)
+            EncuestaScreenBodyContent(modifier = Modifier.padding(paddingValues), mvvm, navController, uiState)
         }
     }
 }
 
 @Composable
-fun encuestaScreenBodyContent(modifier: Modifier, mvvm: ViewModelEncuestaScreen, navController: NavHostController, uiState: UiState) {
+fun EncuestaScreenBodyContent(modifier: Modifier, mvvm: ViewModelEncuestaScreen, navController: NavHostController, uiState: UiState) {
     val preguntasEncuesta = PreguntasEncuesta()
     val preguntasRelacion = preguntasEncuesta.preguntas
 
@@ -186,35 +180,39 @@ fun encuestaScreenBodyContent(modifier: Modifier, mvvm: ViewModelEncuestaScreen,
 
 @Composable
 fun PentagonChart(respuestas: List<Int>) {
-    // Dibuja el esquema pentagonal según las respuestas obtenidas
-    val pentagonSize = 200.dp
-    val lineWidth = 2.dp
-    val path = androidx.compose.ui.graphics.Path()
-
-    for (i in 0 until respuestas.size) {
-        val angle = Math.toRadians((i * (360.0 / respuestas.size)).toDouble())
-        /*val x = (pentagonSize / 2 * cos(angle)).toFloat() + pentagonSize / 2
-        val y = (pentagonSize / 2 * sin(angle)).toFloat() + pentagonSize / 2
-
-        if (i == 0) {
-            path.moveTo(x, y)
-        } else {
-            path.lineTo(x, y)
-        }*/
-    }
-
-    path.close()
-
-    Canvas(
-        modifier = Modifier.size(pentagonSize),
-        onDraw = {
-            drawPath(
-                path = path,
-                color = Color(0xFF6200EA),
-                style = Stroke(lineWidth.toPx())
-            )
+    Spacer(
+        modifier = Modifier.drawWithCache {
+            val path = Path()
+            val angleIncrement = 2.0 * PI / 5.0
+            val radius = min(size.width, size.height) / 4.0f
+            for (i in 0 until 5) {
+                val angle = i * angleIncrement - PI / 2.0
+                val x = (radius * cos(angle)).toFloat() + size.width / 2.0f
+                val y = (radius * sin(angle)).toFloat() + size.height / 2.0f
+                if (i == 0) {
+                    path.moveTo(x, y)
+                } else {
+                    path.lineTo(x, y)
+                }
+                // Dibuja el texto de la respuesta en cada esquina
+                val textX = ((radius + 30f) * cos(angle)).toFloat() + size.width / 2.0f
+                val textY = ((radius + 30f) * sin(angle)).toFloat() + size.height / 2.0f
+                /*drawContext.canvas.nativeCanvas.drawText(
+                    "Opción ${i + 1}",
+                    textX,
+                    textY,
+                    android.graphics.Paint().apply {
+                        color = android.graphics.Color.BLACK
+                        textSize = 15f
+                        textAlign = android.graphics.Paint.Align.CENTER
+                    }
+                )*/
+            }
+            path.close()
+            onDrawBehind {
+                drawPath(path, Color.Magenta, style = Stroke(width = 10f))
+            }
         }
+            .fillMaxSize()
     )
 }
-
-

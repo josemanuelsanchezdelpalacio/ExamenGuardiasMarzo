@@ -21,4 +21,14 @@ class ViewModelSOS_Screen : ViewModel() {
     fun mandarUbicacionContacto() {
         TODO("Not yet implemented")
     }
+
+    fun abrirMenu() {
+        val newState = _uiState.value.copy(isMenuDesplegable = true)
+        _uiState.value = newState
+    }
+
+    fun cerrarMenu() {
+        val newState = _uiState.value.copy(isMenuDesplegable = false)
+        _uiState.value = newState
+    }
 }
