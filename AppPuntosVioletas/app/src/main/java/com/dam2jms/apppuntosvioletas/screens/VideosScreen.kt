@@ -23,8 +23,6 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -38,7 +36,6 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import androidx.navigation.NavHostController
 import com.dam2jms.apppuntosvioletas.navigation.AppScreens
-import com.dam2jms.apppuntosvioletas.states.UiState
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -82,13 +79,13 @@ fun OpcionesScreen(navController: NavHostController) {
                 }
             }
         ) { paddingValues ->
-            opcionesScreenBodyContent(modifier = Modifier.padding(paddingValues), navController)
+            videosScreenBodyContent(modifier = Modifier.padding(paddingValues), navController)
         }
     }
 }
 
 @Composable
-fun opcionesScreenBodyContent(modifier: Modifier, navController: NavHostController) {
+fun videosScreenBodyContent(modifier: Modifier, navController: NavHostController) {
     Column(
         modifier = Modifier
             .fillMaxSize()

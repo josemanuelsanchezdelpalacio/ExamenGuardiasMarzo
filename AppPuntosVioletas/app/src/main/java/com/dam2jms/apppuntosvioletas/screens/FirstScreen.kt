@@ -58,7 +58,7 @@ fun FirstScreen(navController: NavHostController, mvvm: ViewModelFirstScreen) {
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        gesturesEnabled = drawerState.isOpen, // Añade esta línea
+        gesturesEnabled = drawerState.isOpen,
         drawerContent = {
             DrawerContent(navController = navController)
         },

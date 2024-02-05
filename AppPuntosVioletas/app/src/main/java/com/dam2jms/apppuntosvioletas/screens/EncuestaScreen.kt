@@ -34,12 +34,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.CacheDrawScope
 import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -95,13 +102,23 @@ fun EncuestaScreen(navController: NavHostController, mvvm: ViewModelEncuestaScre
                 }
             }
         ) { paddingValues ->
-            EncuestaScreenBodyContent(modifier = Modifier.padding(paddingValues), mvvm, navController, uiState)
+            EncuestaScreenBodyContent(
+                modifier = Modifier.padding(paddingValues),
+                mvvm,
+                navController,
+                uiState
+            )
         }
     }
 }
 
 @Composable
-fun EncuestaScreenBodyContent(modifier: Modifier, mvvm: ViewModelEncuestaScreen, navController: NavHostController, uiState: UiState) {
+fun EncuestaScreenBodyContent(
+    modifier: Modifier,
+    mvvm: ViewModelEncuestaScreen,
+    navController: NavHostController,
+    uiState: UiState
+) {
     val preguntasEncuesta = PreguntasEncuesta()
     val preguntasRelacion = preguntasEncuesta.preguntas
 
@@ -111,12 +128,6 @@ fun EncuestaScreenBodyContent(modifier: Modifier, mvvm: ViewModelEncuestaScreen,
 
     // Inicializa la lista de respuestas pentagonales con valores de 0
     respuestasPentagonales.addAll(List(preguntasRelacion.size) { 0 })
-
-
-    fun reiniciarEncuesta() {
-        mvvm.reiniciarEncuesta()
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize(),
@@ -171,8 +182,18 @@ fun EncuestaScreenBodyContent(modifier: Modifier, mvvm: ViewModelEncuestaScreen,
             ) {
                 Text(text = "Siguiente Pregunta")
             }
+
+            Button(
+                onClick = {
+                    mvvm.reiniciarEncuesta()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+            ) {
+                Text(text = "Reiniciar encuesta")
+            }
         } else {
-            // Muestra el esquema pentagonal
             PentagonChart(respuestasPentagonales)
         }
     }
@@ -180,39 +201,77 @@ fun EncuestaScreenBodyContent(modifier: Modifier, mvvm: ViewModelEncuestaScreen,
 
 @Composable
 fun PentagonChart(respuestas: List<Int>) {
-    Spacer(
-        modifier = Modifier.drawWithCache {
-            val path = Path()
-            val angleIncrement = 2.0 * PI / 5.0
-            val radius = min(size.width, size.height) / 4.0f
-            for (i in 0 until 5) {
-                val angle = i * angleIncrement - PI / 2.0
-                val x = (radius * cos(angle)).toFloat() + size.width / 2.0f
-                val y = (radius * sin(angle)).toFloat() + size.height / 2.0f
-                if (i == 0) {
-                    path.moveTo(x, y)
-                } else {
-                    path.lineTo(x, y)
-                }
-                // Dibuja el texto de la respuesta en cada esquina
-                val textX = ((radius + 30f) * cos(angle)).toFloat() + size.width / 2.0f
-                val textY = ((radius + 30f) * sin(angle)).toFloat() + size.height / 2.0f
-                /*drawContext.canvas.nativeCanvas.drawText(
-                    "Opción ${i + 1}",
-                    textX,
-                    textY,
-                    android.graphics.Paint().apply {
-                        color = android.graphics.Color.BLACK
-                        textSize = 15f
-                        textAlign = android.graphics.Paint.Align.CENTER
-                    }
-                )*/
+
+    val textMeasurer = rememberTextMeasurer()
+
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        // Se calcula el punto central y el tamaño
+        val X = size.width / 2
+        val Y = size.height / 2
+        val radioExterno = 300f
+        val radioInterno = 300f
+
+        val respuestasEsquinas =
+            listOf("V.Psicologica", "V.Sexual", "R.Sana", "R.Constructiva", "X", "V.Sexual")
+
+        val hexagono = Path().apply {
+            moveTo(X + radioExterno * cos(0f), Y + radioExterno * sin(0f))
+            for (i in 1..5) {
+                val angle = i * (2 * PI / 6)
+                lineTo(
+                    (X + radioExterno * cos(angle)).toFloat(),
+                    (Y + radioExterno * sin(angle)).toFloat()
+                )
             }
-            path.close()
-            onDrawBehind {
-                drawPath(path, Color.Magenta, style = Stroke(width = 10f))
-            }
+            close()
         }
-            .fillMaxSize()
+        drawPath(path = hexagono, color = Color.Magenta, style = Stroke(width = 10f))
+
+        estadisticPentagonChart(
+            drawScope = this,
+            center = Offset(size.width / 2, size.height / 2),
+            radius = 150f,
+            respuestas = listOf(3, 4, 2, 5, 1) // Replace with your actual data
+        )
+
+        for (i in respuestasEsquinas.indices) {
+            val angulo = i * (2 * PI / 6)
+            val textoX = (X + (radioExterno + 20) * cos(angulo)).toFloat()
+            val textoY = (Y + (radioExterno + 20) * sin(angulo)).toFloat()
+            drawText(
+                textMeasurer = textMeasurer,
+                text = respuestasEsquinas[i],
+                style = TextStyle(fontSize = 16.sp, color = Color.Black),
+                offset = Offset(x = textoX, y = textoY)
+            )
+        }
+    }
+}
+
+@Composable
+fun estadisticPentagonChart(
+    drawScope: DrawScope,
+    center: Offset,
+    radius: Float,
+    respuestas: List<Int>
+) {
+    var startAngle = -90f
+    val angleStep = 72f
+
+    val hexagono = Path().apply {
+        repeat(5) {
+            val statValue = if (respuestas[it] > 0) 1f + ((respuestas[it] / 2f) / 5f)
+            else 0.5f
+            val x = center.x + radius * cos(Math.toRadians(startAngle.toDouble())).toFloat() * statValue
+            val y = center.y + radius * sin(Math.toRadians(startAngle.toDouble())).toFloat() * statValue
+            if(startAngle == -90f) moveTo(x, y) else lineTo(x, y)
+            startAngle += angleStep
+        }
+        close()
+    }
+    drawScope.drawPath(
+        path = hexagono,
+        color = Color.Magenta,
+        style = Stroke(width = 10f)
     )
 }
