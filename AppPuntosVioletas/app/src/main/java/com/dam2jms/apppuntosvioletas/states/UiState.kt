@@ -13,7 +13,8 @@ data class UiState(
     val isMenuDesplegable: Boolean = false,
 
     var respuesta: Int = 0,
-    val puntuacion: Int = 0,
+    var puntuacion: Int = 0,
     var numPregunta: Int = 0,
-    var respuestaSeleccionada: Int = -1
+    var respuestaSeleccionada: Int = -1,
+    var respuestasSeleccionadas: List<Int> = listOf()
 )

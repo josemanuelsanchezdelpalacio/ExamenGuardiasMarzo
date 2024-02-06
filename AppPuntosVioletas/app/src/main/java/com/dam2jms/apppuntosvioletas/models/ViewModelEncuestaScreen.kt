@@ -20,12 +20,12 @@ class ViewModelEncuestaScreen : ViewModel() {
 
     fun registrarRespuesta(respuesta: Int) {
         _uiState.value = _uiState.value.copy(
-            puntuacion = _uiState.value.puntuacion + respuesta,
-            numPregunta = _uiState.value.numPregunta + 1
+            respuestasSeleccionadas = _uiState.value.respuestasSeleccionadas + respuesta,
+            respuestaSeleccionada = -1
         )
     }
 
     fun siguientePregunta() {
-        _uiState.value = _uiState.value.copy(numPregunta = _uiState.value.numPregunta)
+        _uiState.value = _uiState.value.copy(numPregunta = _uiState.value.numPregunta + 1)
     }
 }

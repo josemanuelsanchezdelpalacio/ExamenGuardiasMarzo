@@ -1,5 +1,7 @@
 package com.dam2jms.apppuntosvioletas.screens
 
+import android.graphics.Paint
+import android.graphics.Typeface
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
@@ -10,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
@@ -34,15 +35,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.CacheDrawScope
-import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.asComposePaint
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
@@ -57,7 +60,6 @@ import com.dam2jms.apppuntosvioletas.states.UiState
 import kotlinx.coroutines.launch
 import kotlin.math.PI
 import kotlin.math.cos
-import kotlin.math.min
 import kotlin.math.sin
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -128,9 +130,9 @@ fun EncuestaScreenBodyContent(
 
     // Inicializa la lista de respuestas pentagonales con valores de 0
     respuestasPentagonales.addAll(List(preguntasRelacion.size) { 0 })
+
     Column(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(50.dp))
@@ -194,84 +196,78 @@ fun EncuestaScreenBodyContent(
                 Text(text = "Reiniciar encuesta")
             }
         } else {
-            PentagonChart(respuestasPentagonales)
+            // Todas las preguntas han sido respondidas, mostrar el gráfico
+            val statistics = generateStatistics(uiState.respuestasSeleccionadas)
+            PentagonChart(drawScope = DrawScope, center = Offset(0f, 0f), radius = 100f, respuestas = statistics)
         }
     }
 }
 
 @Composable
-fun PentagonChart(respuestas: List<Int>) {
+fun PentagonChart(drawScope: DrawScope, center: Offset, radius: Float, respuestas: List<Int>){
 
     val textMeasurer = rememberTextMeasurer()
 
     Canvas(modifier = Modifier.fillMaxSize()) {
         // Se calcula el punto central y el tamaño
-        val X = size.width / 2
-        val Y = size.height / 2
-        val radioExterno = 300f
-        val radioInterno = 300f
+        val angleStep = 72f
+        var startAngle = -90f
 
         val respuestasEsquinas =
             listOf("V.Psicologica", "V.Sexual", "R.Sana", "R.Constructiva", "X", "V.Sexual")
 
-        val hexagono = Path().apply {
-            moveTo(X + radioExterno * cos(0f), Y + radioExterno * sin(0f))
-            for (i in 1..5) {
-                val angle = i * (2 * PI / 6)
-                lineTo(
-                    (X + radioExterno * cos(angle)).toFloat(),
-                    (Y + radioExterno * sin(angle)).toFloat()
-                )
+        val hexagonoExterno = Path().apply {
+            repeat(5) {
+                val x = center.x + radius * cos(Math.toRadians(startAngle.toDouble()).toFloat())
+                val y = center.y + radius * sin(Math.toRadians(startAngle.toDouble()).toFloat())
+                if (startAngle == -90f) moveTo(x, y) else lineTo(x, y)
+                startAngle += angleStep
             }
             close()
         }
-        drawPath(path = hexagono, color = Color.Magenta, style = Stroke(width = 10f))
+        drawPath(path = hexagonoExterno, color = Color.Magenta, style = Stroke(width = 10f))
 
-        estadisticPentagonChart(
-            drawScope = this,
-            center = Offset(size.width / 2, size.height / 2),
-            radius = 150f,
-            respuestas = listOf(3, 4, 2, 5, 1) // Replace with your actual data
-        )
 
+        val paint = Paint().apply {
+            color = Color.Black.toArgb()
+            textSize = 24f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        }
+
+        val textPaint = paint.asComposePaint()
+        val textOffset = 20.dp
+        val textRadius = radius + textOffset.value
+
+        repeat(5) {
+            val angle = Math.toRadians(-90 + it * 72.toDouble()).toFloat()
+            val x = center.x + textRadius * cos(angle)
+            val y = center.y + textRadius * sin(angle)
+        }
+
+        // Dibujar las etiquetas en cada vértice del hexágono exterior
         for (i in respuestasEsquinas.indices) {
             val angulo = i * (2 * PI / 6)
-            val textoX = (X + (radioExterno + 20) * cos(angulo)).toFloat()
-            val textoY = (Y + (radioExterno + 20) * sin(angulo)).toFloat()
-            drawText(
-                textMeasurer = textMeasurer,
-                text = respuestasEsquinas[i],
-                style = TextStyle(fontSize = 16.sp, color = Color.Black),
-                offset = Offset(x = textoX, y = textoY)
-            )
+            val textoX = (center.x + (textRadius + 20) * cos(angulo)).toFloat()
+            val textoY = (center.y + (textRadius + 20) * sin(angulo)).toFloat()
+            drawText(textMeasurer = textMeasurer, text = respuestasEsquinas[i], style = TextStyle(fontSize = 16.sp, color = Color.Black), topLeft = Offset(x = textoX, y = textoY))
         }
+
+        val hexagonoInterno = Path().apply {
+            repeat(5) {
+                val statValue = if (respuestas[it] > 0) 1f else 0.5f
+                val x = center.x + radius * respuestas[it] / respuestas.size * cos(Math.toRadians(startAngle.toDouble()).toFloat()) * statValue
+                val y = center.y + radius * respuestas[it] / respuestas.size * sin(Math.toRadians(startAngle.toDouble()).toFloat()) * statValue
+                if (startAngle == -90f) moveTo(x, y) else lineTo(x, y)
+                startAngle += angleStep
+            }
+            close()
+        }
+
+        drawPath(path = hexagonoInterno, color = Color.Magenta, style = Fill)
     }
 }
 
-@Composable
-fun estadisticPentagonChart(
-    drawScope: DrawScope,
-    center: Offset,
-    radius: Float,
-    respuestas: List<Int>
-) {
-    var startAngle = -90f
-    val angleStep = 72f
-
-    val hexagono = Path().apply {
-        repeat(5) {
-            val statValue = if (respuestas[it] > 0) 1f + ((respuestas[it] / 2f) / 5f)
-            else 0.5f
-            val x = center.x + radius * cos(Math.toRadians(startAngle.toDouble())).toFloat() * statValue
-            val y = center.y + radius * sin(Math.toRadians(startAngle.toDouble())).toFloat() * statValue
-            if(startAngle == -90f) moveTo(x, y) else lineTo(x, y)
-            startAngle += angleStep
-        }
-        close()
-    }
-    drawScope.drawPath(
-        path = hexagono,
-        color = Color.Magenta,
-        style = Stroke(width = 10f)
-    )
+fun generateStatistics(selectedAnswers: List<Int>): List<Int> {
+    val answerCounts = selectedAnswers.groupingBy { it }.eachCount()
+    return List(5) { answerCounts.getOrDefault(it, 0) }
 }
