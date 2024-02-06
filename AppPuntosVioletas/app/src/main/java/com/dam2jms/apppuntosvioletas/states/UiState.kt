@@ -16,5 +16,5 @@ data class UiState(
     var puntuacion: Int = 0,
     var numPregunta: Int = 0,
     var respuestaSeleccionada: Int = -1,
-    var respuestasSeleccionadas: List<Int> = listOf()
+    var respuestasSeleccionadas: List<Any> = listOf()
 )
